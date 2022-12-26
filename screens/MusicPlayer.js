@@ -1,14 +1,22 @@
+{/* Manually mported libraries: 
+  Ionicons -> Vector icons library (see android/app/build.gradle line 308)
+  Slider -> Simple slider library
+  songs -> Object defined in our model Data.js
+*/}
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Dimensions, Image, FlatList, Animated } from 'react-native'
 import React, { useEffect, useState, useRef } from 'react'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Slider from '@react-native-community/slider'
 import songs from "../model/Data"
 
+{/* Default phone dimensions (Depends on the screen size) */ }
 const { width, height } = Dimensions.get("window")
 
+{/* Principal method called when uses <MusicPlayer /> tag, and returns a View 
+(Basic React Native CLI structure)*/}
 const MusicPlayer = () => {
 
-  const[songIndex, setSongIndex] = useState(0)
+  const [songIndex, setSongIndex] = useState(0)
 
   const scrollX = useRef(new Animated.Value(0)).current
 
@@ -17,7 +25,7 @@ const MusicPlayer = () => {
 
       //console.log(`ScrollX: ${value} | Device width: ${width}`)
       const index = Math.round(value / width)
-        setSongIndex(index)
+      setSongIndex(index)
       // console.log(index)
     })
   }, [])
@@ -38,7 +46,12 @@ const MusicPlayer = () => {
   return (
     <SafeAreaView style={style.container}>
       <View style={style.mainContainer}>
-        {/* image */}
+        {/* 
+          - Song image
+          
+          
+
+        */}
         <Animated.FlatList
           renderItem={renderSongs}
           data={songs}
@@ -61,13 +74,24 @@ const MusicPlayer = () => {
           )}
         />
 
-        {/* Song Content */}
+        {/* 
+          - Song Content
+          
+            Text: Simple text display
+            style property: Can contain more than 1 style using an array
+
+          */}
         <View>
           <Text style={[style.songContent, style.songTitle]}>{songs[songIndex].title}</Text>
           <Text style={[style.songContent, style.songArtist]}>{songs[songIndex].artist}</Text>
         </View>
 
-        {/* slider */}
+        {/* 
+          - Slider
+
+            Slider: Imported library with custom properties
+
+         */}
         <View>
           <Slider
             style={style.progressBar}
@@ -79,15 +103,23 @@ const MusicPlayer = () => {
             maximumTrackTintColor="#FFFFFF"
             onSlidingComplete={() => { }}
           />
-          {/* music progress durations */}
+          {/* 
+            - Music progress durations
+
+           */}
           <View style={style.progressLevelDuration}>
             <Text style={style.progressLabelText}>00:00</Text>
             <Text style={style.progressLabelText}>00:00</Text>
           </View>
-
         </View>
 
-        {/* music controls */}
+        {/* 
+          - Music controls
+            
+          TouchableOpacity: Decrease or Increase opacity when press their components.
+          Ionicons: Vector icons from Ionicons (all icon name can be found in their website)
+
+        */}
         <View style={style.musicControlsContainer}>
           <TouchableOpacity onPress={() => { }}>
             <Ionicons name='play-skip-back-outline' size={35} color="#FFD369" />
@@ -103,7 +135,9 @@ const MusicPlayer = () => {
         </View>
       </View>
 
-      {/* bottom container */}
+      {/* 
+        - Bottom container
+      */}
       <View style={style.bottomContainer}>
         <View style={style.bottonIconWrapper}>
           <TouchableOpacity onPress={() => { }}>
@@ -127,10 +161,13 @@ const MusicPlayer = () => {
   )
 }
 
+{/* Genereted by default, typing rnfe (React Native Functional Export Component) */ }
 export default MusicPlayer
 
+{/* Stylesheet object with all of our styles used in the application*/ }
 const style = StyleSheet.create({
   container: {
+    /* Flex : 1 -> Fit all space*/
     flex: 1,
     backgroundColor: "#222831",
   },
@@ -160,6 +197,7 @@ const style = StyleSheet.create({
   },
 
   bottomContainer: {
+    /* Used our with var, which fits all the width of our screen */
     width: width,
     alignItems: "center",
     paddingVertical: 15,
@@ -169,12 +207,14 @@ const style = StyleSheet.create({
   },
 
   bottonIconWrapper: {
+    /* Display components as a row */
     flexDirection: "row",
     justifyContent: "space-between",
     width: "80%",
   },
 
   elevation: {
+    /* Elevation with shadow effects */
     elevation: 5,
     shadowColor: "#ccc",
     shadowOffset: {

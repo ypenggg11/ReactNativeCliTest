@@ -1,8 +1,10 @@
+{/* Array object which contains each of our song object */}
 const songs = [
     {
         id: 1,
         title: "19th Floor",
         artist: "Bobby Richards",
+        /* Use 'require(path)' to access system files */
         artwork: require("../assets/img/img1.jpg"),
         url: require("../assets/audio/assets_audio_19th Floor - Bobby Richards.mp3")
     },
