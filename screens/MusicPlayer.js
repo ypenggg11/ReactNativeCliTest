@@ -16,10 +16,23 @@ const { width, height } = Dimensions.get("window")
 (Basic React Native CLI structure)*/}
 const MusicPlayer = () => {
 
+  {/*
+    - Initialize a songIndex var, using a state (useState(0))
+    - We can update that state with setSongIndex(new index)
+  */}
   const [songIndex, setSongIndex] = useState(0)
 
+  {/* 
+    - scrollx: Cointains the current reference (position)
+    - useRef: React method used for obtaining references from our views.
+    - new Animated.Value(0): When you scroll left/right, it will throw back the value (initial = 0)
+
+  */}
   const scrollX = useRef(new Animated.Value(0)).current
 
+  {/* 
+    - Used when scrollx value changed, an set our songIndex to the current scrollx reference (pos 1, pos 2...)
+  */}
   useEffect(() => {
     scrollX.addListener(({ value }) => {
 
@@ -30,6 +43,11 @@ const MusicPlayer = () => {
     })
   }, [])
 
+  {/* 
+    - Render songs method
+    
+      Used with FlatList, to render each item (image) in our model Data.js
+  */}
   const renderSongs = ({ item, index }) => {
     return (
       <Animated.View style={style.mainImageWrapper}>
@@ -49,13 +67,17 @@ const MusicPlayer = () => {
         {/* 
           - Song image
           
-          
-
+          Flatlist: Render components with better performance and makes it a horizontal scroll view
+          Animated: When you use a Animated.event, you must use Animated in your parent tag too
         */}
         <Animated.FlatList
+          /* Our custom render method */
           renderItem={renderSongs}
+          /* Our data file */
           data={songs}
+          /* An id from our data file items */
           keyExtractor={item => item.id}
+          /* Horizontal scroll properies */
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
