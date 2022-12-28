@@ -2,9 +2,11 @@
   Ionicons -> Vector icons library (see android/app/build.gradle line 308)
   Slider -> Simple slider library
   songs -> Object defined in our model Data.js
+  TrackPlayer -> For playing songs in the background (as an async task)
 */}
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Dimensions, Image, FlatList, Animated } from 'react-native'
 import React, { useEffect, useState, useRef } from 'react'
+import TrackPlayer, { Capability, Event, RepeatMode, State, usePlaybackState, useProgress, useTrackPlayerEvents } from 'react-native-track-player'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Slider from '@react-native-community/slider'
 import songs from "../model/Data"
@@ -12,15 +14,48 @@ import songs from "../model/Data"
 {/* Default phone dimensions (Depends on the screen size) */ }
 const { width, height } = Dimensions.get("window")
 
+{/* 
+  - First method used to setup our TrackPlayer library
+
+  When using await, it MUST be inside of an async function
+*/}
+const setUpPlayer = async () => {
+  try {
+    /* The next function has to wait until the TrackPlayer initializes */
+    await TrackPlayer.setupPlayer();
+    /* Adds our songs data structure to the track player */
+    await TrackPlayer.add(songs);
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+{/* Get the current track and changes it audio state to playing/stopped */ }
+const togglePlayBack = async playBackState => {
+  const currentTrack = await TrackPlayer.getCurrentTrack();
+  /* If it's not playing an audio... */
+  if (currentTrack != null) {
+    {/* playBackStates -> Ready -> Playing or Paused */}
+    if (playBackState == State.Paused || playBackState == State.Ready) {
+      await TrackPlayer.play();
+    } else {
+      await TrackPlayer.pause();
+    }
+  }
+}
+
 {/* Principal method called when uses <MusicPlayer /> tag, and returns a View 
 (Basic React Native CLI structure)*/}
 const MusicPlayer = () => {
+
+  {/* Set our playBackState to the default trackplayer state (imported from TrackPlayer library) */}
+  const playBackState = usePlaybackState();
 
   {/*
     - Initialize a songIndex var, using a state (useState(0))
     - We can update that state with setSongIndex(new index)
   */}
-  const [songIndex, setSongIndex] = useState(0)
+  const [songIndex, setSongIndex] = useState(0);
 
   {/* 
     - scrollx: Cointains the current reference (position)
@@ -28,17 +63,19 @@ const MusicPlayer = () => {
     - new Animated.Value(0): When you scroll left/right, it will throw back the value (initial = 0)
 
   */}
-  const scrollX = useRef(new Animated.Value(0)).current
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   {/* 
+    - We have to call our setUpPlayer() function to setup the TrackPlayer
     - Used when scrollx value changed, an set our songIndex to the current scrollx reference (pos 1, pos 2...)
   */}
   useEffect(() => {
+    setUpPlayer();
     scrollX.addListener(({ value }) => {
 
       //console.log(`ScrollX: ${value} | Device width: ${width}`)
-      const index = Math.round(value / width)
-      setSongIndex(index)
+      const index = Math.round(value / width);
+      setSongIndex(index);
       // console.log(index)
     })
   }, [])
@@ -147,8 +184,14 @@ const MusicPlayer = () => {
             <Ionicons name='play-skip-back-outline' size={35} color="#FFD369" />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => { }}>
-            <Ionicons name='ios-pause-circle' size={75} color="#FFD369" />
+          {/* When whe press on the icon, it will call our togglePlayBack method */}
+          <TouchableOpacity onPress={() => togglePlayBack(playBackState)}>
+            {/* If it's playing, show pause icon, if it's not, show play icon */}
+            <Ionicons name={
+              playBackState === State.Playing
+                ? 'ios-pause-circle' 
+                : 'ios-play-circle'
+            } size={75} color="#FFD369" />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => { }}>
