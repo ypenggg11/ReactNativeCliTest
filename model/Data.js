@@ -11,7 +11,7 @@ const songs = [
         title: "19th Floor",
         artist: "Bobby Richards",
         /* Use 'require(path)' to access system files */
-        artwork: require("../assets/img/img1.jpg")
+        artwork: require("../assets/img/img1.jpg"),
     },
     {
         url: require("../assets/audio/Awful-joshpan.mp3"),

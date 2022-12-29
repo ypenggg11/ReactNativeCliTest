@@ -22,24 +22,24 @@ const { width, height } = Dimensions.get("window")
 const setUpPlayer = async () => {
   try {
     /* The next function has to wait until the TrackPlayer initializes */
-    await TrackPlayer.setupPlayer();
+    await TrackPlayer.setupPlayer()
     /* Adds our songs data structure to the track player */
-    await TrackPlayer.add(songs);
+    await TrackPlayer.add(songs)
   } catch (e) {
-    console.log(e);
+    console.log(e)
   }
 }
 
 {/* Get the current track and changes it audio state to playing/stopped */ }
 const togglePlayBack = async playBackState => {
-  const currentTrack = await TrackPlayer.getCurrentTrack();
+  const currentTrack = await TrackPlayer.getCurrentTrack()
   /* If it's not playing an audio... */
   if (currentTrack != null) {
-    {/* playBackStates -> Ready -> Playing or Paused */}
+    {/* playBackStates -> Ready -> Playing or Paused */ }
     if (playBackState == State.Paused || playBackState == State.Ready) {
-      await TrackPlayer.play();
+      await TrackPlayer.play()
     } else {
-      await TrackPlayer.pause();
+      await TrackPlayer.pause()
     }
   }
 }
@@ -48,22 +48,29 @@ const togglePlayBack = async playBackState => {
 (Basic React Native CLI structure)*/}
 const MusicPlayer = () => {
 
-  {/* Set our playBackState to the default trackplayer state (imported from TrackPlayer library) */}
-  const playBackState = usePlaybackState();
+  {/* Set our playBackState to the default trackplayer state (imported from TrackPlayer library) */ }
+  const playBackState = usePlaybackState()
 
   {/*
     - Initialize a songIndex var, using a state (useState(0))
     - We can update that state with setSongIndex(new index)
+
+    - Use useProgress for working with song times in milliseconds
   */}
-  const [songIndex, setSongIndex] = useState(0);
+  const [songIndex, setSongIndex] = useState(0)
+  const progress = useProgress()
 
   {/* 
+      CUSTOM REFERENCES
+
     - scrollx: Cointains the current reference (position)
     - useRef: React method used for obtaining references from our views.
     - new Animated.Value(0): When you scroll left/right, it will throw back the value (initial = 0)
 
+    - songSlider reference used for next/previous song buttons (Flatlist reference)
   */}
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollX = useRef(new Animated.Value(0)).current
+  const songSlider = useRef(null)
 
   {/* 
     - We have to call our setUpPlayer() function to setup the TrackPlayer
@@ -74,11 +81,28 @@ const MusicPlayer = () => {
     scrollX.addListener(({ value }) => {
 
       //console.log(`ScrollX: ${value} | Device width: ${width}`)
-      const index = Math.round(value / width);
+      const index = Math.round(value / width)
       setSongIndex(index);
       // console.log(index)
     })
+
+    
   }, [])
+
+  {/* Method to skip the current song to the next one  */ }
+  const skipToNext = () => {
+    /* Gets our current flatlist reference and scrolls it to the next songIndex (songIndex -> our reference for each scroll image) */
+    songSlider.current.scrollToOffset({
+      offset: (songIndex + 1) * width,
+    })
+  }
+
+  {/* Method to skip the current song to the previous one  */ }
+  const skipToPrevious = () => {
+    songSlider.current.scrollToOffset({
+      offset: (songIndex - 1) * width,
+    })
+  }
 
   {/* 
     - Render songs method
@@ -108,6 +132,8 @@ const MusicPlayer = () => {
           Animated: When you use a Animated.event, you must use Animated in your parent tag too
         */}
         <Animated.FlatList
+          /* Set the flatlist reference to our custom song slider reference */
+          ref={songSlider}
           /* Our custom render method */
           renderItem={renderSongs}
           /* Our data file */
@@ -154,21 +180,29 @@ const MusicPlayer = () => {
         <View>
           <Slider
             style={style.progressBar}
-            value={10}
+            value={progress.position}
             minimumValue={0}
-            maximumValue={100}
+            maximumValue={progress.duration}
             thumbTintColor="#FFD369"
             minimumTrackTintColor="#FFD369"
             maximumTrackTintColor="#FFFFFF"
-            onSlidingComplete={() => { }}
+            /* When whe slides the slider, our TrackPlayer will seek to the new value (go to time...) */
+            onSlidingComplete={() => { async value => {
+              await TrackPlayer.seekTo(value);
+            } }}
           />
           {/* 
             - Music progress durations
 
            */}
           <View style={style.progressLevelDuration}>
-            <Text style={style.progressLabelText}>00:00</Text>
-            <Text style={style.progressLabelText}>00:00</Text>
+            <Text style={style.progressLabelText}>{
+              /* Parse from milliseconds to minutes and seconds */
+              new Date((progress.position)*1000).toLocaleTimeString().substring(3).split(" ")[0]
+            }</Text>
+            <Text style={style.progressLabelText}>{
+              new Date((progress.duration - progress.position)*1000).toLocaleTimeString().substring(3).split(" ")[0]
+            }</Text>
           </View>
         </View>
 
@@ -180,7 +214,7 @@ const MusicPlayer = () => {
 
         */}
         <View style={style.musicControlsContainer}>
-          <TouchableOpacity onPress={() => { }}>
+          <TouchableOpacity onPress={() => { skipToPrevious() }}>
             <Ionicons name='play-skip-back-outline' size={35} color="#FFD369" />
           </TouchableOpacity>
 
@@ -189,12 +223,12 @@ const MusicPlayer = () => {
             {/* If it's playing, show pause icon, if it's not, show play icon */}
             <Ionicons name={
               playBackState === State.Playing
-                ? 'ios-pause-circle' 
+                ? 'ios-pause-circle'
                 : 'ios-play-circle'
             } size={75} color="#FFD369" />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => { }}>
+          <TouchableOpacity onPress={() => { skipToNext() }}>
             <Ionicons name='play-skip-forward-outline' size={35} color="#FFD369" />
           </TouchableOpacity>
         </View>
