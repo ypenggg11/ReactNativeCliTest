@@ -72,6 +72,35 @@ const MusicPlayer = () => {
   const scrollX = useRef(new Animated.Value(0)).current
   const songSlider = useRef(null)
 
+  {/* mutable states used for changing the text labels depending on the song playing */}
+  const [trackTitle, setTrackTitle] = useState()
+  const [trackArtist, setTrackArtist] = useState()
+  const [trackArtwork, setTrackArtwork] = useState()
+
+  {/* 
+    - Change song from the TrackPlayer (useTrackPlayerEvents & Event imported)
+
+    When triggers a TrackChanged Playback event, runs an async function and 
+    goes to the next song if it exists (When a song finishes...)
+  */}
+  useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
+    if(event.type == Event.PlaybackTrackChanged && event.nextTrack != null) {
+      const track = await TrackPlayer.getTrack(event.nextTrack)
+
+      /* Update the song info */
+      const {title, artwork, artist} = track
+      setTrackTitle(title)
+      setTrackArtist(artist)
+      setTrackArtwork(artwork)
+    }
+  })
+
+  {/* Skips to a certain track (in positions)*/}
+  const skipTo = async trackId => {
+    await TrackPlayer.skip(trackId)
+    await TrackPlayer.play()
+  }
+
   {/* 
     - We have to call our setUpPlayer() function to setup the TrackPlayer
     - Used when scrollx value changed, an set our songIndex to the current scrollx reference (pos 1, pos 2...)
@@ -79,14 +108,16 @@ const MusicPlayer = () => {
   useEffect(() => {
     setUpPlayer();
     scrollX.addListener(({ value }) => {
-
-      //console.log(`ScrollX: ${value} | Device width: ${width}`)
       const index = Math.round(value / width)
+      /* When we scrolls the horizontal slider, whe skips the song also */
+      skipTo(index)
       setSongIndex(index);
-      // console.log(index)
     })
 
-    
+    // return () => {
+    //   scrollX.removeAllListeners()
+    //   TrackPlayer.destroy()
+    // }
   }, [])
 
   {/* Method to skip the current song to the next one  */ }
@@ -114,7 +145,7 @@ const MusicPlayer = () => {
       <Animated.View style={style.mainImageWrapper}>
         <View style={[style.imageWrapper, style.elevation]}>
           <Image
-            source={item.artwork}
+            source={trackArtwork}
             style={style.musicImage}
           />
         </View>
@@ -167,8 +198,8 @@ const MusicPlayer = () => {
 
           */}
         <View>
-          <Text style={[style.songContent, style.songTitle]}>{songs[songIndex].title}</Text>
-          <Text style={[style.songContent, style.songArtist]}>{songs[songIndex].artist}</Text>
+          <Text style={[style.songContent, style.songTitle]}>{trackTitle}</Text>
+          <Text style={[style.songContent, style.songArtist]}>{trackArtist}</Text>
         </View>
 
         {/* 
@@ -187,9 +218,9 @@ const MusicPlayer = () => {
             minimumTrackTintColor="#FFD369"
             maximumTrackTintColor="#FFFFFF"
             /* When whe slides the slider, our TrackPlayer will seek to the new value (go to time...) */
-            onSlidingComplete={() => { async value => {
+            onSlidingComplete={ async value => {
               await TrackPlayer.seekTo(value);
-            } }}
+            } }
           />
           {/* 
             - Music progress durations
