@@ -85,13 +85,17 @@ const MusicPlayer = () => {
   */}
   useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
     if(event.type == Event.PlaybackTrackChanged && event.nextTrack != null) {
-      const track = await TrackPlayer.getTrack(event.nextTrack)
+
+      const nextTrack = event.nextTrack
+
+      const track = await TrackPlayer.getTrack(nextTrack)
 
       /* Update the song info */
       const {title, artwork, artist} = track
       setTrackTitle(title)
       setTrackArtist(artist)
       setTrackArtwork(artwork)
+      setSongIndex(nextTrack)
     }
   })
 
@@ -106,12 +110,12 @@ const MusicPlayer = () => {
     - Used when scrollx value changed, an set our songIndex to the current scrollx reference (pos 1, pos 2...)
   */}
   useEffect(() => {
-    setUpPlayer();
+    setUpPlayer()
     scrollX.addListener(({ value }) => {
       const index = Math.round(value / width)
       /* When we scrolls the horizontal slider, whe skips the song also */
       skipTo(index)
-      setSongIndex(index);
+      //setSongIndex(index);
     })
 
     // return () => {
