@@ -11,6 +11,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import Slider from '@react-native-community/slider'
 import songs from "../model/Data"
 
+//TODO Arreglar songIndex al finalizar una cancion, y arreglar songIndex del songScroller
+
 {/* Default phone dimensions (Depends on the screen size) */ }
 const { width, height } = Dimensions.get("window")
 
@@ -67,15 +69,16 @@ const MusicPlayer = () => {
     - useRef: React method used for obtaining references from our views.
     - new Animated.Value(0): When you scroll left/right, it will throw back the value (initial = 0)
 
-    - songSlider reference used for next/previous song buttons (Flatlist reference)
+    - songScroller reference used for next/previous song buttons (Flatlist reference)
   */}
   const scrollX = useRef(new Animated.Value(0)).current
-  const songSlider = useRef(null)
+  const songScroller = useRef(null)
 
-  {/* mutable states used for changing the text labels depending on the song playing */}
+  /*
+  { mutable states used for changing the text labels depending on the song playing }
   const [trackTitle, setTrackTitle] = useState()
   const [trackArtist, setTrackArtist] = useState()
-  const [trackArtwork, setTrackArtwork] = useState()
+  const [trackArtwork, setTrackArtwork] = useState()*/
 
   {/* 
     - Change song from the TrackPlayer (useTrackPlayerEvents & Event imported)
@@ -86,23 +89,21 @@ const MusicPlayer = () => {
   useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
     if(event.type == Event.PlaybackTrackChanged && event.nextTrack != null) {
 
-      const nextTrack = event.nextTrack
-
-      const track = await TrackPlayer.getTrack(nextTrack)
+      //const track = await TrackPlayer.getTrack(event.nextTrack)
+      
+      togglePlayBack(playBackState)
 
       /* Update the song info */
-      const {title, artwork, artist} = track
+      /*const {title, artwork, artist} = track
       setTrackTitle(title)
       setTrackArtist(artist)
-      setTrackArtwork(artwork)
-      setSongIndex(nextTrack)
+      setTrackArtwork(artwork)*/
     }
   })
 
   {/* Skips to a certain track (in positions)*/}
   const skipTo = async trackId => {
     await TrackPlayer.skip(trackId)
-    await TrackPlayer.play()
   }
 
   {/* 
@@ -111,8 +112,10 @@ const MusicPlayer = () => {
   */}
   useEffect(() => {
     setUpPlayer()
+    
     scrollX.addListener(({ value }) => {
       const index = Math.round(value / width)
+      setSongIndex(index)
       /* When we scrolls the horizontal slider, whe skips the song also */
       skipTo(index)
       //setSongIndex(index);
@@ -127,14 +130,14 @@ const MusicPlayer = () => {
   {/* Method to skip the current song to the next one  */ }
   const skipToNext = () => {
     /* Gets our current flatlist reference and scrolls it to the next songIndex (songIndex -> our reference for each scroll image) */
-    songSlider.current.scrollToOffset({
+    songScroller.current.scrollToOffset({
       offset: (songIndex + 1) * width,
     })
   }
 
   {/* Method to skip the current song to the previous one  */ }
   const skipToPrevious = () => {
-    songSlider.current.scrollToOffset({
+    songScroller.current.scrollToOffset({
       offset: (songIndex - 1) * width,
     })
   }
@@ -149,7 +152,7 @@ const MusicPlayer = () => {
       <Animated.View style={style.mainImageWrapper}>
         <View style={[style.imageWrapper, style.elevation]}>
           <Image
-            source={trackArtwork}
+            source={songs[songIndex].artwork}
             style={style.musicImage}
           />
         </View>
@@ -168,7 +171,7 @@ const MusicPlayer = () => {
         */}
         <Animated.FlatList
           /* Set the flatlist reference to our custom song slider reference */
-          ref={songSlider}
+          ref={songScroller}
           /* Our custom render method */
           renderItem={renderSongs}
           /* Our data file */
@@ -202,8 +205,8 @@ const MusicPlayer = () => {
 
           */}
         <View>
-          <Text style={[style.songContent, style.songTitle]}>{trackTitle}</Text>
-          <Text style={[style.songContent, style.songArtist]}>{trackArtist}</Text>
+          <Text style={[style.songContent, style.songTitle]}>{songs[songIndex].title}</Text>
+          <Text style={[style.songContent, style.songArtist]}>{songs[songIndex].artist}</Text>
         </View>
 
         {/* 
@@ -236,7 +239,7 @@ const MusicPlayer = () => {
               new Date((progress.position)*1000).toLocaleTimeString().substring(3).split(" ")[0]
             }</Text>
             <Text style={style.progressLabelText}>{
-              new Date((progress.duration - progress.position)*1000).toLocaleTimeString().substring(3).split(" ")[0]
+              new Date(progress.duration*1000).toLocaleTimeString().substring(3).split(" ")[0]
             }</Text>
           </View>
         </View>
