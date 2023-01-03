@@ -6,12 +6,12 @@
 */}
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Dimensions, Image, FlatList, Animated } from 'react-native'
 import React, { useEffect, useState, useRef } from 'react'
-import TrackPlayer, { Capability, Event, RepeatMode, State, usePlaybackState, useProgress, useTrackPlayerEvents } from 'react-native-track-player'
+import TrackPlayer, { Event, State, usePlaybackState, useProgress, useTrackPlayerEvents } from 'react-native-track-player'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Slider from '@react-native-community/slider'
 import songs from "../model/Data"
 
-//TODO Arreglar songIndex al finalizar una cancion, y arreglar songIndex del songScroller
+//TODO Change const names and explain some libraries and other things
 
 {/* Default phone dimensions (Depends on the screen size) */ }
 const { width, height } = Dimensions.get("window")
@@ -74,12 +74,6 @@ const MusicPlayer = () => {
   const scrollX = useRef(new Animated.Value(0)).current
   const songScroller = useRef(null)
 
-  /*
-  { mutable states used for changing the text labels depending on the song playing }
-  const [trackTitle, setTrackTitle] = useState()
-  const [trackArtist, setTrackArtist] = useState()
-  const [trackArtwork, setTrackArtwork] = useState()*/
-
   {/* 
     - Change song from the TrackPlayer (useTrackPlayerEvents & Event imported)
 
@@ -87,21 +81,22 @@ const MusicPlayer = () => {
     goes to the next song if it exists (When a song finishes...)
   */}
   useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
-    if(event.type == Event.PlaybackTrackChanged && event.nextTrack != null) {
 
-      //const track = await TrackPlayer.getTrack(event.nextTrack)
-      
-      togglePlayBack(playBackState)
+    if (event.type == Event.PlaybackTrackChanged && event.nextTrack != null) {
 
-      /* Update the song info */
-      /*const {title, artwork, artist} = track
-      setTrackTitle(title)
-      setTrackArtist(artist)
-      setTrackArtwork(artwork)*/
+      if(event.nextTrack > songIndex) {
+        skipToNext()
+      }
+
+      setSongIndex(event.nextTrack)
+
+      await TrackPlayer.pause()
+      await TrackPlayer.play()
+
     }
   })
 
-  {/* Skips to a certain track (in positions)*/}
+  {/* Skips to a certain track (in positions)*/ }
   const skipTo = async trackId => {
     await TrackPlayer.skip(trackId)
   }
@@ -112,19 +107,17 @@ const MusicPlayer = () => {
   */}
   useEffect(() => {
     setUpPlayer()
-    
+
     scrollX.addListener(({ value }) => {
       const index = Math.round(value / width)
-      setSongIndex(index)
       /* When we scrolls the horizontal slider, whe skips the song also */
       skipTo(index)
-      //setSongIndex(index);
     })
 
-    // return () => {
-    //   scrollX.removeAllListeners()
-    //   TrackPlayer.destroy()
-    // }
+    return () => {
+      scrollX.removeAllListeners()
+      TrackPlayer.destroy()
+    }
   }, [])
 
   {/* Method to skip the current song to the next one  */ }
@@ -147,12 +140,12 @@ const MusicPlayer = () => {
     
       Used with FlatList, to render each item (image) in our model Data.js
   */}
-  const renderSongs = ({ item, index }) => {
+  const renderSongs = ({item,index}) => {
     return (
       <Animated.View style={style.mainImageWrapper}>
         <View style={[style.imageWrapper, style.elevation]}>
           <Image
-            source={songs[songIndex].artwork}
+            source={item.artwork}
             style={style.musicImage}
           />
         </View>
@@ -225,9 +218,9 @@ const MusicPlayer = () => {
             minimumTrackTintColor="#FFD369"
             maximumTrackTintColor="#FFFFFF"
             /* When whe slides the slider, our TrackPlayer will seek to the new value (go to time...) */
-            onSlidingComplete={ async value => {
+            onSlidingComplete={async value => {
               await TrackPlayer.seekTo(value);
-            } }
+            }}
           />
           {/* 
             - Music progress durations
@@ -236,10 +229,10 @@ const MusicPlayer = () => {
           <View style={style.progressLevelDuration}>
             <Text style={style.progressLabelText}>{
               /* Parse from milliseconds to minutes and seconds */
-              new Date((progress.position)*1000).toLocaleTimeString().substring(3).split(" ")[0]
+              new Date((progress.position) * 1000).toLocaleTimeString().substring(3).split(" ")[0]
             }</Text>
             <Text style={style.progressLabelText}>{
-              new Date(progress.duration*1000).toLocaleTimeString().substring(3).split(" ")[0]
+              new Date(progress.duration * 1000).toLocaleTimeString().substring(3).split(" ")[0]
             }</Text>
           </View>
         </View>
