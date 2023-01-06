@@ -3,6 +3,7 @@
   Slider -> Simple slider library
   songs -> Object defined in our model Data.js
   TrackPlayer -> For playing songs in the background (as an async task)
+  Flatlist -> Render components with better performance and makes it a horizontal scroll view
 */}
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Dimensions, Image, FlatList, Animated } from 'react-native'
 import React, { useEffect, useState, useRef } from 'react'
@@ -11,17 +12,17 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import Slider from '@react-native-community/slider'
 import songs from "../model/Data"
 
-//TODO Change const names and explain some libraries and other things
+//TODO Change const names and songs and explain some libraries and other things -> Change interface to one that looks like spotify
 
 {/* Default phone dimensions (Depends on the screen size) */ }
-const { width, height } = Dimensions.get("window")
+const { screenWidth, screenHeight } = Dimensions.get("window")
 
 {/* 
   - First method used to setup our TrackPlayer library
 
   When using await, it MUST be inside of an async function
 */}
-const setUpPlayer = async () => {
+const trackPlayerSetUp = async () => {
   try {
     /* The next function has to wait until the TrackPlayer initializes */
     await TrackPlayer.setupPlayer()
@@ -33,11 +34,11 @@ const setUpPlayer = async () => {
 }
 
 {/* Get the current track and changes it audio state to playing/stopped */ }
-const togglePlayBack = async playBackState => {
+const changePlayBackState = async playBackState => {
   const currentTrack = await TrackPlayer.getCurrentTrack()
   /* If it's not playing an audio... */
   if (currentTrack != null) {
-    {/* playBackStates -> Ready -> Playing or Paused */ }
+    {/* playBackStates -> Ready/ Playing/ Paused/ Connecting/ ... */ }
     if (playBackState == State.Paused || playBackState == State.Ready) {
       await TrackPlayer.play()
     } else {
@@ -60,7 +61,7 @@ const MusicPlayer = () => {
     - Use useProgress for working with song times in milliseconds
   */}
   const [songIndex, setSongIndex] = useState(0)
-  const progress = useProgress()
+  const songProgress = useProgress()
 
   {/* 
       CUSTOM REFERENCES
@@ -102,16 +103,16 @@ const MusicPlayer = () => {
   }
 
   {/* 
-    - We have to call our setUpPlayer() function to setup the TrackPlayer
+    - We have to call our trackPlayerSetUp() function to setup the TrackPlayer
     - Used when scrollx value changed, an set our songIndex to the current scrollx reference (pos 1, pos 2...)
   */}
   useEffect(() => {
-    setUpPlayer()
+    trackPlayerSetUp()
 
     scrollX.addListener(({ value }) => {
-      const index = Math.round(value / width)
+      const scrollIndex = Math.round(value / screenWidth)
       /* When we scrolls the horizontal slider, whe skips the song also */
-      skipTo(index)
+      skipTo(scrollIndex)
     })
 
     return () => {
@@ -124,14 +125,14 @@ const MusicPlayer = () => {
   const skipToNext = () => {
     /* Gets our current flatlist reference and scrolls it to the next songIndex (songIndex -> our reference for each scroll image) */
     songScroller.current.scrollToOffset({
-      offset: (songIndex + 1) * width,
+      offset: (songIndex + 1) * screenWidth,
     })
   }
 
   {/* Method to skip the current song to the previous one  */ }
   const skipToPrevious = () => {
     songScroller.current.scrollToOffset({
-      offset: (songIndex - 1) * width,
+      offset: (songIndex - 1) * screenWidth,
     })
   }
 
@@ -140,7 +141,7 @@ const MusicPlayer = () => {
     
       Used with FlatList, to render each item (image) in our model Data.js
   */}
-  const renderSongs = ({item,index}) => {
+  const renderSongImages = ({item,index}) => {
     return (
       <Animated.View style={style.mainImageWrapper}>
         <View style={[style.imageWrapper, style.elevation]}>
@@ -166,7 +167,7 @@ const MusicPlayer = () => {
           /* Set the flatlist reference to our custom song slider reference */
           ref={songScroller}
           /* Our custom render method */
-          renderItem={renderSongs}
+          renderItem={renderSongImages}
           /* Our data file */
           data={songs}
           /* An id from our data file items */
@@ -211,9 +212,9 @@ const MusicPlayer = () => {
         <View>
           <Slider
             style={style.progressBar}
-            value={progress.position}
+            value={songProgress.position}
             minimumValue={0}
-            maximumValue={progress.duration}
+            maximumValue={songProgress.duration}
             thumbTintColor="#FFD369"
             minimumTrackTintColor="#FFD369"
             maximumTrackTintColor="#FFFFFF"
@@ -229,10 +230,10 @@ const MusicPlayer = () => {
           <View style={style.progressLevelDuration}>
             <Text style={style.progressLabelText}>{
               /* Parse from milliseconds to minutes and seconds */
-              new Date((progress.position) * 1000).toLocaleTimeString().substring(3).split(" ")[0]
+              new Date((songProgress.position) * 1000).toLocaleTimeString().substring(3).split(" ")[0]
             }</Text>
             <Text style={style.progressLabelText}>{
-              new Date(progress.duration * 1000).toLocaleTimeString().substring(3).split(" ")[0]
+              new Date(songProgress.duration * 1000).toLocaleTimeString().substring(3).split(" ")[0]
             }</Text>
           </View>
         </View>
@@ -249,8 +250,8 @@ const MusicPlayer = () => {
             <Ionicons name='play-skip-back-outline' size={35} color="#FFD369" />
           </TouchableOpacity>
 
-          {/* When whe press on the icon, it will call our togglePlayBack method */}
-          <TouchableOpacity onPress={() => togglePlayBack(playBackState)}>
+          {/* When whe press on the icon, it will call our changePlayBackState method */}
+          <TouchableOpacity onPress={() => changePlayBackState(playBackState)}>
             {/* If it's playing, show pause icon, if it's not, show play icon */}
             <Ionicons name={
               playBackState === State.Playing
@@ -309,7 +310,7 @@ const style = StyleSheet.create({
   },
 
   mainImageWrapper: {
-    width: width,
+    width: screenWidth,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -328,7 +329,7 @@ const style = StyleSheet.create({
 
   bottomContainer: {
     /* Used our with var, which fits all the width of our screen */
-    width: width,
+    width: screenWidth,
     alignItems: "center",
     paddingVertical: 15,
     borderTopColor: "#393E46",
