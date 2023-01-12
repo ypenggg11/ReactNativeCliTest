@@ -6,40 +6,40 @@
  */}
 const songs = [
     {
-        url: require("../assets/audio/19thFloor-BobbyRichards.mp3"),
+        url: require("../assets/audio/aloneInARoom.mp3"),
         id: 1,
-        title: "19th Floor",
-        artist: "Bobby Richards",
+        title: "Alone In A Room",
+        artist: "Asking Alexandria",
         /* Use 'require(path)' to access system files */
-        artwork: require("../assets/img/img1.jpg"),
+        artwork: require('../assets/img/img1.jpg'),
     },
     {
-        url: require("../assets/audio/Awful-joshpan.mp3"),
+        url: require("../assets/audio/devilDoesntBargin.mp3"),
         id: 2,
-        title: "Awful",
-        artist: "Josh pan",
-        artwork: require("../assets/img/img2.jpg"),
+        title: "Devil Doesn't Bargain",
+        artist: "Alec Benjamin",
+        artwork: require('../assets/img/img2.jpg'),
     },
     {
-        url: require("../assets/audio/SomethingisGoingOn-Godmode.mp3"),
+        url: require("../assets/audio/firestarter.mp3"),
         id: 3,
-        title: "Something is Going On",
-        artist: "Godmode",
-        artwork: require("../assets/img/img3.jpg")
+        title: "Firestarter",
+        artist: "SUMR, Siamese",
+        artwork: require('../assets/img/img3.jpg')
     },
     {
-        url: require("../assets/audio/BookTheRentalWitIt-RAGE.mp3"),
+        url: require("../assets/audio/fractions.mp3"),
         id: 4,
-        title: "Book The Rental Wit It",
-        artist: "RAGE",
-        artwork: require("../assets/img/img4.jpg")
+        title: "Fractions",
+        artist: "Juniper Vale",
+        artwork: require('../assets/img/img4.jpg')
     },
     {
-        url: require("../assets/audio/CrimsonFly-Huma-Huma.mp3"),
+        url: require("../assets/audio/neroUmbasa.mp3"),
         id: 5,
-        title: "Crimson Fly",
-        artist: "Huma-Huma",
-        artwork: require("../assets/img/img5.jpg")
+        title: "NERO",
+        artist: "UMBASA",
+        artwork: require('../assets/img/img5.jpg')
     }
 ]
 

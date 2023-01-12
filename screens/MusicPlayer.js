@@ -12,10 +12,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import Slider from '@react-native-community/slider'
 import songs from "../model/Data"
 
+//TODO Fix artwork size and songProgress duration
 //TODO Change const names and songs and explain some libraries and other things -> Change interface to one that looks like spotify
 
 {/* Default phone dimensions (Depends on the screen size) */ }
-const { screenWidth, screenHeight } = Dimensions.get("window")
+const { width, height } = Dimensions.get("window")
 
 {/* 
   - First method used to setup our TrackPlayer library
@@ -50,6 +51,24 @@ const changePlayBackState = async playBackState => {
 {/* Principal method called when uses <MusicPlayer /> tag, and returns a View 
 (Basic React Native CLI structure)*/}
 const MusicPlayer = () => {
+
+  {/* 
+    - We have to call our trackPlayerSetUp() function to setup the TrackPlayer
+    - Used when scrollx value changed, an set our songIndex to the current scrollx reference (pos 1, pos 2...)
+  */}
+  useEffect(() => {
+    trackPlayerSetUp()
+
+    scrollX.addListener(({ value }) => {
+      const scrollIndex = Math.round(value / width)
+      /* When we scrolls the horizontal slider, whe skips the song also */
+      skipTo(scrollIndex)
+    })
+
+    return () => {
+      scrollX.removeAllListeners()
+    }
+  }, [])
 
   {/* Set our playBackState to the default trackplayer state (imported from TrackPlayer library) */ }
   const playBackState = usePlaybackState()
@@ -102,37 +121,18 @@ const MusicPlayer = () => {
     await TrackPlayer.skip(trackId)
   }
 
-  {/* 
-    - We have to call our trackPlayerSetUp() function to setup the TrackPlayer
-    - Used when scrollx value changed, an set our songIndex to the current scrollx reference (pos 1, pos 2...)
-  */}
-  useEffect(() => {
-    trackPlayerSetUp()
-
-    scrollX.addListener(({ value }) => {
-      const scrollIndex = Math.round(value / screenWidth)
-      /* When we scrolls the horizontal slider, whe skips the song also */
-      skipTo(scrollIndex)
-    })
-
-    return () => {
-      scrollX.removeAllListeners()
-      TrackPlayer.destroy()
-    }
-  }, [])
-
   {/* Method to skip the current song to the next one  */ }
   const skipToNext = () => {
     /* Gets our current flatlist reference and scrolls it to the next songIndex (songIndex -> our reference for each scroll image) */
     songScroller.current.scrollToOffset({
-      offset: (songIndex + 1) * screenWidth,
+      offset: (songIndex + 1) * width,
     })
   }
 
   {/* Method to skip the current song to the previous one  */ }
   const skipToPrevious = () => {
     songScroller.current.scrollToOffset({
-      offset: (songIndex - 1) * screenWidth,
+      offset: (songIndex - 1) * width,
     })
   }
 
@@ -310,7 +310,7 @@ const style = StyleSheet.create({
   },
 
   mainImageWrapper: {
-    width: screenWidth,
+    width: width,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -329,7 +329,7 @@ const style = StyleSheet.create({
 
   bottomContainer: {
     /* Used our with var, which fits all the width of our screen */
-    width: screenWidth,
+    width: width,
     alignItems: "center",
     paddingVertical: 15,
     borderTopColor: "#393E46",
