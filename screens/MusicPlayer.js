@@ -7,7 +7,7 @@
 */}
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Dimensions, Image, FlatList, Animated } from 'react-native'
 import React, { useEffect, useState, useRef } from 'react'
-import TrackPlayer, { Event, State, usePlaybackState, useProgress, useTrackPlayerEvents } from 'react-native-track-player'
+import TrackPlayer, { Event, State, useProgress, usePlaybackState, useTrackPlayerEvents } from 'react-native-track-player'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Slider from '@react-native-community/slider'
 import songs from "../model/Data"
@@ -64,10 +64,6 @@ const MusicPlayer = () => {
       /* When we scrolls the horizontal slider, whe skips the song also */
       skipTo(scrollIndex)
     })
-
-    return () => {
-      scrollX.removeAllListeners()
-    }
   }, [])
 
   {/* Set our playBackState to the default trackplayer state (imported from TrackPlayer library) */ }
@@ -104,7 +100,7 @@ const MusicPlayer = () => {
 
     if (event.type == Event.PlaybackTrackChanged && event.nextTrack != null) {
 
-      if(event.nextTrack > songIndex) {
+      if (event.nextTrack > songIndex) {
         skipToNext()
       }
 
@@ -112,7 +108,6 @@ const MusicPlayer = () => {
 
       await TrackPlayer.pause()
       await TrackPlayer.play()
-
     }
   })
 
@@ -141,7 +136,7 @@ const MusicPlayer = () => {
     
       Used with FlatList, to render each item (image) in our model Data.js
   */}
-  const renderSongImages = ({item,index}) => {
+  const renderSongImages = ({ item, index }) => {
     return (
       <Animated.View style={style.mainImageWrapper}>
         <View style={[style.imageWrapper, style.elevation]}>
@@ -214,13 +209,13 @@ const MusicPlayer = () => {
             style={style.progressBar}
             value={songProgress.position}
             minimumValue={0}
-            maximumValue={songProgress.duration}
+            maximumValue={songs[songIndex].duration}
             thumbTintColor="#FFD369"
             minimumTrackTintColor="#FFD369"
             maximumTrackTintColor="#FFFFFF"
             /* When whe slides the slider, our TrackPlayer will seek to the new value (go to time...) */
             onSlidingComplete={async value => {
-              await TrackPlayer.seekTo(value);
+              await TrackPlayer.seekTo(value)
             }}
           />
           {/* 
@@ -233,7 +228,7 @@ const MusicPlayer = () => {
               new Date((songProgress.position) * 1000).toLocaleTimeString().substring(3).split(" ")[0]
             }</Text>
             <Text style={style.progressLabelText}>{
-              new Date(songProgress.duration * 1000).toLocaleTimeString().substring(3).split(" ")[0]
+              new Date(songs[songIndex].duration * 1000).toLocaleTimeString().substring(3).split(" ")[0]
             }</Text>
           </View>
         </View>

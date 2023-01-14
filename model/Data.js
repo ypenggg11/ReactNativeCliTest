@@ -12,6 +12,7 @@ const songs = [
         artist: "Asking Alexandria",
         /* Use 'require(path)' to access system files */
         artwork: require('../assets/img/img1.jpg'),
+        duration: 253,
     },
     {
         url: require("../assets/audio/devilDoesntBargin.mp3"),
@@ -19,27 +20,31 @@ const songs = [
         title: "Devil Doesn't Bargain",
         artist: "Alec Benjamin",
         artwork: require('../assets/img/img2.jpg'),
+        duration: 163,
     },
     {
         url: require("../assets/audio/firestarter.mp3"),
         id: 3,
         title: "Firestarter",
         artist: "SUMR, Siamese",
-        artwork: require('../assets/img/img3.jpg')
+        artwork: require('../assets/img/img3.jpg'),
+        duration: 223,
     },
     {
         url: require("../assets/audio/fractions.mp3"),
         id: 4,
         title: "Fractions",
         artist: "Juniper Vale",
-        artwork: require('../assets/img/img4.jpg')
+        artwork: require('../assets/img/img4.jpg'),
+        duration: 230,
     },
     {
         url: require("../assets/audio/neroUmbasa.mp3"),
         id: 5,
         title: "NERO",
         artist: "UMBASA",
-        artwork: require('../assets/img/img5.jpg')
+        artwork: require('../assets/img/img5.jpg'),
+        duration: 151,
     }
 ]
 
