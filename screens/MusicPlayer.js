@@ -12,8 +12,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import Slider from '@react-native-community/slider'
 import songs from "../model/Data"
 
-//TODO Fix artwork size and songProgress duration
-//TODO Change const names and songs and explain some libraries and other things -> Change interface to one that looks like spotify
+//TODO Fix artwork size
+//TODO Change interface to one that looks like spotify -> Change const names and songs and explain some libraries and other things
 
 {/* Default phone dimensions (Depends on the screen size) */ }
 const { width, height } = Dimensions.get("window")
@@ -73,7 +73,7 @@ const MusicPlayer = () => {
     - Initialize a songIndex var, using a state (useState(0))
     - We can update that state with setSongIndex(new index)
 
-    - Use useProgress for working with song times in milliseconds
+    - Use useProgress for working with song times in milliseconds (songProgress.duration -> *NOT WORKING )
   */}
   const [songIndex, setSongIndex] = useState(0)
   const songProgress = useProgress()
@@ -209,14 +209,19 @@ const MusicPlayer = () => {
             style={style.progressBar}
             value={songProgress.position}
             minimumValue={0}
+            /* songProgress.duration NOT WORKING, so we have to manually set the song duration in our Object file */
             maximumValue={songs[songIndex].duration}
             thumbTintColor="#FFD369"
             minimumTrackTintColor="#FFD369"
             maximumTrackTintColor="#FFFFFF"
+            disabled = {true}
+
+            /* NOT WORKING (value it's correct, but the .seekTo() method it's not updating the song position) */
             /* When whe slides the slider, our TrackPlayer will seek to the new value (go to time...) */
-            onSlidingComplete={async value => {
+            /*onSlidingComplete={async value => {
+              console.log(value)
               await TrackPlayer.seekTo(value)
-            }}
+            }}*/
           />
           {/* 
             - Music progress durations
