@@ -1,4 +1,4 @@
-{/* Manually mported libraries: 
+{/* Manually imported libraries: 
   Ionicons -> Vector icons library (see android/app/build.gradle line 308)
   Slider -> Simple slider library
   songs -> Object defined in our model Data.js
@@ -10,10 +10,10 @@ import React, { useEffect, useState, useRef } from 'react'
 import TrackPlayer, { Event, State, useProgress, usePlaybackState, useTrackPlayerEvents } from 'react-native-track-player'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Slider from '@react-native-community/slider'
-import songs from "../model/Data"
+import songs from "../model/Songs"
 
-//TODO Fix artwork size
-//TODO Change interface to one that looks like spotify -> Change const names and songs and explain some libraries and other things
+// FUNCIONA
+// TODO Change style names, clean code, and explain some libraries.
 
 {/* Default phone dimensions (Depends on the screen size) */ }
 const { width, height } = Dimensions.get("window")
@@ -76,6 +76,7 @@ const MusicPlayer = () => {
     - Use useProgress for working with song times in milliseconds (songProgress.duration -> *NOT WORKING )
   */}
   const [songIndex, setSongIndex] = useState(0)
+  const [like, setLike] = useState(false)
   const songProgress = useProgress()
 
   {/* 
@@ -131,6 +132,10 @@ const MusicPlayer = () => {
     })
   }
 
+  const changeLike = () => {
+    setLike(!like)
+  }
+
   {/* 
     - Render songs method
     
@@ -139,7 +144,7 @@ const MusicPlayer = () => {
   const renderSongImages = ({ item, index }) => {
     return (
       <Animated.View style={style.mainImageWrapper}>
-        <View style={[style.imageWrapper, style.elevation]}>
+        <View style={style.imageWrapper}>
           <Image
             source={item.artwork}
             style={style.musicImage}
@@ -151,6 +156,15 @@ const MusicPlayer = () => {
 
   return (
     <SafeAreaView style={style.container}>
+      {/* Playing round button */}
+      <View style={style.roundButtonContainer}>
+        <TouchableOpacity
+          onPress={() => { }}
+          style={style.roundButton}>
+          <Text style={style.textButton}>Playing</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={style.mainContainer}>
         {/* 
           - Song image
@@ -185,110 +199,118 @@ const MusicPlayer = () => {
             }
           )}
         />
+      </View>
 
-        {/* 
+      <View style={style.songControlContainer}>
+        <View style={style.songInfoContainer}>
+          {/* 
           - Song Content
           
             Text: Simple text display
             style property: Can contain more than 1 style using an array
 
           */}
-        <View>
-          <Text style={[style.songContent, style.songTitle]}>{songs[songIndex].title}</Text>
-          <Text style={[style.songContent, style.songArtist]}>{songs[songIndex].artist}</Text>
-        </View>
-
-        {/* 
-          - Slider
-
-            Slider: Imported library with custom properties
-
-         */}
-        <View>
-          <Slider
-            style={style.progressBar}
-            value={songProgress.position}
-            minimumValue={0}
-            /* songProgress.duration NOT WORKING, so we have to manually set the song duration in our Object file */
-            maximumValue={songs[songIndex].duration}
-            thumbTintColor="#FFD369"
-            minimumTrackTintColor="#FFD369"
-            maximumTrackTintColor="#FFFFFF"
-            disabled = {true}
-
-            /* NOT WORKING (value it's correct, but the .seekTo() method it's not updating the song position) */
-            /* When whe slides the slider, our TrackPlayer will seek to the new value (go to time...) */
-            /*onSlidingComplete={async value => {
-              console.log(value)
-              await TrackPlayer.seekTo(value)
-            }}*/
-          />
-          {/* 
-            - Music progress durations
-
-           */}
-          <View style={style.progressLevelDuration}>
-            <Text style={style.progressLabelText}>{
-              /* Parse from milliseconds to minutes and seconds */
-              new Date((songProgress.position) * 1000).toLocaleTimeString().substring(3).split(" ")[0]
-            }</Text>
-            <Text style={style.progressLabelText}>{
-              new Date(songs[songIndex].duration * 1000).toLocaleTimeString().substring(3).split(" ")[0]
-            }</Text>
+          <View>
+            <Text style={[style.songContent, style.songTitle]}>{songs[songIndex].title}</Text>
+            <Text style={[style.songContent, style.songArtist]}>{songs[songIndex].artist}</Text>
           </View>
-        </View>
 
-        {/* 
+          {/* 
           - Music controls
             
           TouchableOpacity: Decrease or Increase opacity when press their components.
           Ionicons: Vector icons from Ionicons (all icon name can be found in their website)
 
-        */}
-        <View style={style.musicControlsContainer}>
-          <TouchableOpacity onPress={() => { skipToPrevious() }}>
-            <Ionicons name='play-skip-back-outline' size={35} color="#FFD369" />
-          </TouchableOpacity>
+          */}
+          <View style={style.musicControlsContainer}>
+            {/* When whe press on the icon, it will call our changePlayBackState method */}
+            <TouchableOpacity onPress={() => changePlayBackState(playBackState)}>
+              {/* If it's playing, show pause icon, if it's not, show play icon */}
+              <Ionicons name={
+                playBackState == State.Playing
+                  ? 'ios-pause-circle'
+                  : 'ios-play-circle'
+              } size={55} color="#FFFFFF" />
+            </TouchableOpacity>
 
-          {/* When whe press on the icon, it will call our changePlayBackState method */}
-          <TouchableOpacity onPress={() => changePlayBackState(playBackState)}>
-            {/* If it's playing, show pause icon, if it's not, show play icon */}
-            <Ionicons name={
-              playBackState === State.Playing
-                ? 'ios-pause-circle'
-                : 'ios-play-circle'
-            } size={75} color="#FFD369" />
-          </TouchableOpacity>
+            <TouchableOpacity onPress={() => { skipToPrevious() }}>
+              <Ionicons name='play-skip-back-circle' size={55} color="#8D8D8D" />
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => { skipToNext() }}>
-            <Ionicons name='play-skip-forward-outline' size={35} color="#FFD369" />
-          </TouchableOpacity>
+            <TouchableOpacity onPress={() => { skipToNext() }}>
+              <Ionicons name='play-skip-forward-circle' size={55} color="#8D8D8D" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* 
+            - Side container
+          */}
+        <View>
+          <View style={style.sideIconContainer}>
+            <TouchableOpacity onPress={() => { }}>
+              <Ionicons name='ellipsis-vertical' size={26} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => { }}>
+              <Ionicons name='share-social-outline' size={26} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => { changeLike() }}>
+              <Ionicons name={
+                like == true
+                  ? 'heart'
+                  : 'heart-outline'
+              } size={26} color={
+                like == true
+                  ? "#1ED760"
+                  : "#FFFFFF"
+              } />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
+
 
       {/* 
-        - Bottom container
-      */}
-      <View style={style.bottomContainer}>
-        <View style={style.bottonIconWrapper}>
-          <TouchableOpacity onPress={() => { }}>
-            <Ionicons name='heart-outline' size={30} color="#888888" />
-          </TouchableOpacity>
+            - Slider
 
-          <TouchableOpacity onPress={() => { }}>
-            <Ionicons name='repeat' size={30} color="#888888" />
-          </TouchableOpacity>
+            Slider: Imported library with custom properties
+          */}
+      <View style={style.songInfoContainer}>
+        <Slider
+          style={style.progressBar}
+          value={songProgress.position}
+          minimumValue={0}
+          /* songProgress.duration NOT WORKING, so we have to manually set the song duration in our Object file */
+          maximumValue={songs[songIndex].duration}
+          thumbTintColor="#FFFFFF"
+          minimumTrackTintColor="#FFFFFF"
+          maximumTrackTintColor="#FFFFFF"
+          disabled={true}
+        /*NOT WORKING (value it's correct, but the .seekTo() method it's not updating the song position)
+        When whe slides the slider, our TrackPlayer will seek to the new value (go to time...)
+        onSlidingComplete={async value => {
+        console.log(value)
+        await TrackPlayer.seekTo(value)
+        }}
+        */
+        />
 
-          <TouchableOpacity onPress={() => { }}>
-            <Ionicons name='share-outline' size={30} color="#888888" />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => { }}>
-            <Ionicons name='ellipsis-horizontal' size={30} color="#888888" />
-          </TouchableOpacity>
+        {/* 
+            - Music progress durations
+           */}
+        <View style={style.progressLevelDuration}>
+          <Text style={style.progressLabelText}>{
+            /* Parse from milliseconds to minutes and seconds */
+            new Date((songProgress.position) * 1000).toLocaleTimeString().substring(3).split(" ")[0]
+          }</Text>
+          <Text style={style.progressLabelText}>{
+            new Date(songs[songIndex].duration * 1000).toLocaleTimeString().substring(3).split(" ")[0]
+          }</Text>
         </View>
       </View>
-    </SafeAreaView>
+    </SafeAreaView >
   )
 }
 
@@ -300,69 +322,81 @@ const style = StyleSheet.create({
   container: {
     /* Flex : 1 -> Fit all space*/
     flex: 1,
-    backgroundColor: "#222831",
+    backgroundColor: "black",
   },
 
   mainContainer: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  roundButtonContainer: {
+    paddingStart: 35,
+    paddingTop: 40,
+    alignItems: "flex-start",
+  },
+
+  roundButton: {
+    width: 110,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 2,
+    borderRadius: 20,
+    backgroundColor: 'white',
+  },
+
+  textButton: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: 'black',
   },
 
   mainImageWrapper: {
     width: width,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
+    paddingTop: 20,
+    paddingBottom: 20,
   },
 
   imageWrapper: {
     width: 300,
     height: 340,
-    marginBottom: 25,
   },
 
   musicImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 15,
   },
 
-  bottomContainer: {
-    /* Used our with var, which fits all the width of our screen */
-    width: width,
+  songInfoContainer: {
+    paddingStart: 30,
+    alignItems: "flex-start",
+    justifyContent: "flex-start"
+  },
+
+  sideIconContainer: {
+    /* Display components as a column */
+    flexDirection: "column",
     alignItems: "center",
-    paddingVertical: 15,
-    borderTopColor: "#393E46",
-    borderColor: "#222831",
-    borderWidth: 1,
-  },
-
-  bottonIconWrapper: {
-    /* Display components as a row */
-    flexDirection: "row",
     justifyContent: "space-between",
-    width: "80%",
+    height: 120,
   },
 
-  elevation: {
-    /* Elevation with shadow effects */
-    elevation: 5,
-    shadowColor: "#ccc",
-    shadowOffset: {
-      width: 5,
-      height: 5,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 3.84
+  songControlContainer: {
+    flexDirection: "row",
+    width: "100%"
   },
 
   songContent: {
-    textAlign: "center",
+    paddingStart: 20,
+    textAlign: "left",
     color: "#EEEEEE",
   },
 
   songTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
   },
 
@@ -372,28 +406,30 @@ const style = StyleSheet.create({
   },
 
   progressBar: {
-    width: 350,
+    width: width - 60,
     height: 40,
-    marginTop: 25,
-    flexDirection: "row"
+    marginTop: 10,
+    flexDirection: "row",
   },
 
   progressLevelDuration: {
-    width: 340,
+    width: width - 72,
+    paddingStart: 10,
     flexDirection: "row",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
 
   progressLabelText: {
     color: "#fff",
-    fontWeight: "500",
+    fontSize: 17,
   },
 
   musicControlsContainer: {
+    paddingStart: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    width: "60%",
+    width: "70%",
     marginTop: 15,
   },
 })
