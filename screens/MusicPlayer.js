@@ -1,7 +1,7 @@
 {/* Manually imported libraries: 
   Ionicons -> Vector icons library (see android/app/build.gradle line 308)
   Slider -> Simple slider library
-  songs -> Object defined in our model Data.js
+  songs -> Object defined in our model directory Songs.js
   TrackPlayer -> For playing songs in the background (as an async task)
   Flatlist -> Render components with better performance and makes it a horizontal scroll view
 */}
@@ -25,7 +25,7 @@ const { width, height } = Dimensions.get("window")
 */}
 const trackPlayerSetUp = async () => {
   try {
-    /* The next function has to wait until the TrackPlayer initializes */
+    /* Set up our TrackPlayer (initializes it) */
     await TrackPlayer.setupPlayer()
     /* Adds our songs data structure to the track player */
     await TrackPlayer.add(songs)
@@ -34,10 +34,11 @@ const trackPlayerSetUp = async () => {
   }
 }
 
-{/* Get the current track and changes it audio state to playing/stopped */ }
+{/* Play our Pause the current song when called */ }
 const changePlayBackState = async playBackState => {
   const currentTrack = await TrackPlayer.getCurrentTrack()
-  /* If it's not playing an audio... */
+
+  /* If it's playing an audio... */
   if (currentTrack != null) {
     {/* playBackStates -> Ready/ Playing/ Paused/ Connecting/ ... */ }
     if (playBackState == State.Paused || playBackState == State.Ready) {
@@ -48,41 +49,57 @@ const changePlayBackState = async playBackState => {
   }
 }
 
-{/* Principal method called when uses <MusicPlayer /> tag, and returns a View 
-(Basic React Native CLI structure)*/}
+{/* Principal method called when uses <MusicPlayer /> tag, and returns a View (Basic React Native CLI structure)*/}
 const MusicPlayer = () => {
 
   {/* 
-    - We have to call our trackPlayerSetUp() function to setup the TrackPlayer
-    - Used when scrollx value changed, an set our songIndex to the current scrollx reference (pos 1, pos 2...)
+    - Imported method from 'react'
+    
+    Performs side effects in our components, it will be executed at some point
+    depending on our lifecycle (it's a lifecycle method)
   */}
   useEffect(() => {
     trackPlayerSetUp()
 
+    /* When we scrolls the horizontal slider (scrollx value changes), we also skips the song */
     scrollX.addListener(({ value }) => {
+      /* Recover the precise value (index 1,2,3...) */
       const scrollIndex = Math.round(value / width)
-      /* When we scrolls the horizontal slider, whe skips the song also */
+      
       skipTo(scrollIndex)
     })
   }, [])
 
-  {/* Set our playBackState to the default trackplayer state (imported from TrackPlayer library) */ }
+  {/* 
+    - Imported from TrackPlayer library
+    
+    Set our playBackState to the default trackplayer state,
+    represents the current song state.
+  */ }
   const playBackState = usePlaybackState()
 
   {/*
-    - Initialize a songIndex var, using a state (useState(0))
-    - We can update that state with setSongIndex(new index)
+    - Initialize a 'songIndex' and 'like' state
+    - We can update that state with their setters (setLike('new value'))
 
-    - Use useProgress for working with song times in milliseconds (songProgress.duration -> *NOT WORKING )
+    We use useState() imported from 'react', and it can be any value from any data type.
+    State -> Like a mutable value, if the value changes, all of the references 
+    of this value will update to the new value.
   */}
   const [songIndex, setSongIndex] = useState(0)
   const [like, setLike] = useState(false)
+
+  {/* 
+    - useProgress() imported from TrackPlayer library
+
+    Song progress times in milliseconds (songProgress.duration -> *NOT WORKING) 
+  */}
   const songProgress = useProgress()
 
   {/* 
-      CUSTOM REFERENCES
+    CUSTOM REFERENCES
 
-    - scrollx: Cointains the current reference (position)
+    - scrollx: Contains the current reference (position)
     - useRef: React method used for obtaining references from our views.
     - new Animated.Value(0): When you scroll left/right, it will throw back the value (initial = 0)
 
@@ -95,18 +112,22 @@ const MusicPlayer = () => {
     - Change song from the TrackPlayer (useTrackPlayerEvents & Event imported)
 
     When triggers a TrackChanged Playback event, runs an async function and 
-    goes to the next song if it exists (When a song finishes...)
+    goes to the next song if it exists
   */}
   useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
 
+    /* If the next song exists  */
     if (event.type == Event.PlaybackTrackChanged && event.nextTrack != null) {
 
+      /* Some index checks (fix position bugs) */
       if (event.nextTrack > songIndex) {
         skipToNext()
       }
 
+      /* Update our songIndex state  */
       setSongIndex(event.nextTrack)
 
+      /* Pausing and playing (fix some sound bugs) */
       await TrackPlayer.pause()
       await TrackPlayer.play()
     }
@@ -119,7 +140,7 @@ const MusicPlayer = () => {
 
   {/* Method to skip the current song to the next one  */ }
   const skipToNext = () => {
-    /* Gets our current flatlist reference and scrolls it to the next songIndex (songIndex -> our reference for each scroll image) */
+    /* Gets our current flatlist reference and scrolls it to the next songIndex (the next song artwork pos) */
     songScroller.current.scrollToOffset({
       offset: (songIndex + 1) * width,
     })
@@ -132,6 +153,7 @@ const MusicPlayer = () => {
     })
   }
 
+  {/* Toggle like button changing the 'like' state */}
   const changeLike = () => {
     setLike(!like)
   }
@@ -139,7 +161,7 @@ const MusicPlayer = () => {
   {/* 
     - Render songs method
     
-      Used with FlatList, to render each item (image) in our model Data.js
+    Used with FlatList, to render each item (image) in our Songs.js
   */}
   const renderSongImages = ({ item, index }) => {
     return (
@@ -154,8 +176,10 @@ const MusicPlayer = () => {
     )
   }
 
+  /* View components */
   return (
     <SafeAreaView style={style.container}>
+
       {/* Playing round button */}
       <View style={style.roundButtonContainer}>
         <TouchableOpacity
@@ -165,7 +189,9 @@ const MusicPlayer = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Song artwork rendering */}
       <View style={style.mainContainer}>
+
         {/* 
           - Song image
           
@@ -179,9 +205,9 @@ const MusicPlayer = () => {
           renderItem={renderSongImages}
           /* Our data file */
           data={songs}
-          /* An id from our data file items */
+          /* An id from our Songs.js file items */
           keyExtractor={item => item.id}
-          /* Horizontal scroll properies */
+          /* Horizontal scroll properties */
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
@@ -201,14 +227,17 @@ const MusicPlayer = () => {
         />
       </View>
 
-      <View style={style.songControlContainer}>
+      {/* Displays every view inside in a row */}
+      <View style={style.songInfoRowContainer}>
+        
+        {/* Some song content and controls (displayed as our first column) */}
         <View style={style.songInfoContainer}>
-          {/* 
-          - Song Content
-          
-            Text: Simple text display
-            style property: Can contain more than 1 style using an array
 
+          {/* 
+            - Song Content
+          
+            Style property: Can contain more than 1 style using an array
+            Auto update the title and artist text when songIndex state changes
           */}
           <View>
             <Text style={[style.songContent, style.songTitle]}>{songs[songIndex].title}</Text>
@@ -216,15 +245,16 @@ const MusicPlayer = () => {
           </View>
 
           {/* 
-          - Music controls
+            - Music controls
             
-          TouchableOpacity: Decrease or Increase opacity when press their components.
-          Ionicons: Vector icons from Ionicons (all icon name can be found in their website)
-
+            TouchableOpacity: Decrease or Increase opacity when press their components.
+            Ionicons: Vector icons from Ionicons (all icon name can be found in their website)
           */}
           <View style={style.musicControlsContainer}>
+
             {/* When whe press on the icon, it will call our changePlayBackState method */}
             <TouchableOpacity onPress={() => changePlayBackState(playBackState)}>
+
               {/* If it's playing, show pause icon, if it's not, show play icon */}
               <Ionicons name={
                 playBackState == State.Playing
@@ -243,9 +273,7 @@ const MusicPlayer = () => {
           </View>
         </View>
 
-        {/* 
-            - Side container
-          */}
+        {/* Side icons container (displayed as our second column) */}
         <View>
           <View style={style.sideIconContainer}>
             <TouchableOpacity onPress={() => { }}>
@@ -256,6 +284,7 @@ const MusicPlayer = () => {
               <Ionicons name='share-social-outline' size={26} color="#FFFFFF" />
             </TouchableOpacity>
 
+            {/* Toggle like icon button */}
             <TouchableOpacity onPress={() => { changeLike() }}>
               <Ionicons name={
                 like == true
@@ -271,12 +300,11 @@ const MusicPlayer = () => {
         </View>
       </View>
 
-
       {/* 
-            - Slider
+        - Slider
 
-            Slider: Imported library with custom properties
-          */}
+        Slider: Imported library with custom properties
+      */}
       <View style={style.songInfoContainer}>
         <Slider
           style={style.progressBar}
@@ -288,7 +316,7 @@ const MusicPlayer = () => {
           minimumTrackTintColor="#FFFFFF"
           maximumTrackTintColor="#FFFFFF"
           disabled={true}
-        /*NOT WORKING (value it's correct, but the .seekTo() method it's not updating the song position)
+        /* NOT WORKING (value it's correct, but the .seekTo() method it's not updating the song position)
         When whe slides the slider, our TrackPlayer will seek to the new value (go to time...)
         onSlidingComplete={async value => {
         console.log(value)
@@ -297,10 +325,8 @@ const MusicPlayer = () => {
         */
         />
 
-        {/* 
-            - Music progress durations
-           */}
-        <View style={style.progressLevelDuration}>
+        {/* - Music progress durations */}
+        <View style={style.progressDuration}>
           <Text style={style.progressLabelText}>{
             /* Parse from milliseconds to minutes and seconds */
             new Date((songProgress.position) * 1000).toLocaleTimeString().substring(3).split(" ")[0]
@@ -310,17 +336,17 @@ const MusicPlayer = () => {
           }</Text>
         </View>
       </View>
-    </SafeAreaView >
+    </SafeAreaView>
   )
 }
 
 {/* Genereted by default, typing rnfe (React Native Functional Export Component) */ }
 export default MusicPlayer
 
-{/* Stylesheet object with all of our styles used in the application*/ }
+{/* Stylesheet object with all of our styles used in the application */}
 const style = StyleSheet.create({
   container: {
-    /* Flex : 1 -> Fit all space*/
+    /* Flex : 1 -> Fit all space */
     flex: 1,
     backgroundColor: "black",
   },
@@ -384,7 +410,7 @@ const style = StyleSheet.create({
     height: 120,
   },
 
-  songControlContainer: {
+  songInfoRowContainer: {
     flexDirection: "row",
     width: "100%"
   },
@@ -412,7 +438,7 @@ const style = StyleSheet.create({
     flexDirection: "row",
   },
 
-  progressLevelDuration: {
+  progressDuration: {
     width: width - 72,
     paddingStart: 10,
     flexDirection: "row",

@@ -5,10 +5,10 @@ import MusicPlayer from './screens/MusicPlayer'
 {/* Basic React Native CLI structure generated typing rnfe (React Native Functional Export Component) */}
 const App = () => {
   return (
-    //Use view when you need to use a division
+    //Use view when you need to use a division (lika a 'div' in html)
     <View style = {style.container}>
       <StatusBar barStyle={'light-content'} />
-      {/* Our MusicPlayer screen */}
+      {/* Our MusicPlayer screen (MusicPlayer.js) */}
       <MusicPlayer />
     </View>
   )
